@@ -1,0 +1,14 @@
+{
+  "name": "Kindling: A Journal That Follows You",
+  "short_name": "Kindling",
+  "description": "One quiet spark from your own Google Doc, every day \u2014 write toward it, and your entries sync across every device.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2E1F1A",
+  "theme_color": "#8A4A2E",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
