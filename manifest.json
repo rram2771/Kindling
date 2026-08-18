@@ -1,0 +1,23 @@
+{
+  "name": "Kindling: A Journal That Follows You",
+  "short_name": "Kindling",
+  "description": "One quiet spark, every day \u2014 write toward it, and grow your own collection of sparks over time.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2E1F1A",
+  "theme_color": "#8A4A2E",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": {
+      "title": "shared_title",
+      "text": "shared_text",
+      "url": "shared_url"
+    }
+  }
+}
