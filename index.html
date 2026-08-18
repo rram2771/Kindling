@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kindling — A Journal That Follows You</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8A4A2E">
+<style>
+  :root {
+    --ink:#3A2A1F; --cream:#FBF3E7; --cream2:#F3E4CC;
+    --terracotta:#B5651D; --gold:#C68642; --deep:#4A2E1F;
+    --sky1:#2E1F1A; --sky2:#8A4A2E; --sky3:#E8B87A;
+    --green:#5C8A3A; --blue:#4A6CF7; --red:#B0413E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; }
+  body { font-family:'Segoe UI', system-ui, sans-serif; background:#F5EDE0; color:var(--ink); min-height:100vh; }
+  button { font-family:inherit; cursor:pointer; border:none; }
+  input, textarea, select { font-family:inherit; }
+  a { color:var(--terracotta); }
+
+  .center-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .cover-card { width:100%; max-width:440px; }
+  .cover-gradient {
+    background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 55%, var(--sky3) 100%);
+    border-radius:18px; padding:0; text-align:center; color:#FBF3E7; position:relative; overflow:hidden; height:340px;
+  }
+  .mountains { position:absolute; bottom:0; left:0; right:0; }
+  .cover-content { position:relative; z-index:2; padding:30px 26px 0 26px; }
+  .badge { display:inline-block; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.5);
+    border-radius:30px; padding:5px 16px; font-size:11px; letter-spacing:2px; text-transform:uppercase; margin-bottom:14px; }
+  .cover-title { font-size:36px; font-weight:300; letter-spacing:4px; margin:4px 0; font-family:Georgia,serif; }
+  .cover-sub { font-size:13.5px; font-weight:300; margin-bottom:10px; opacity:0.95; }
+  .footnote { font-size:10.5px; color:rgba(58,42,31,0.75); text-align:center; margin-top:14px; line-height:1.6; }
+
+  .login-box { background:var(--cream); border-radius:14px; padding:20px; margin-top:16px; box-shadow:0 6px 24px rgba(74,46,31,0.2); }
+  .field-label { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--terracotta); font-weight:700; display:block; margin-bottom:6px; }
+  .text-input, textarea.text-input, select.text-input {
+    width:100%; background:#FFFDF8; border:1.5px solid #E3CFA8; border-radius:8px; padding:10px 12px;
+    color:var(--ink); outline:none; margin-bottom:12px; font-size:14px;
+  }
+  .text-input:focus { border-color:var(--terracotta); }
+  .btn-primary { width:100%; background:var(--gold); color:#2b1d14; font-weight:800; border-radius:8px; padding:11px; font-size:14px; }
+  .btn-primary:hover { background:#d69852; }
+  .btn-primary:disabled { opacity:0.4; cursor:default; }
+  .btn-secondary { background:#FFFDF8; color:var(--terracotta); border:1.5px solid var(--terracotta); border-radius:8px; padding:9px 14px; font-size:13px; font-weight:700; }
+  .btn-secondary:hover { background:#F3E4CC; }
+
+  .app-shell { max-width:640px; margin:0 auto; padding:0 16px 50px 16px; }
+  .app-header { position:sticky; top:0; z-index:10; background:rgba(245,237,224,0.96); backdrop-filter:blur(4px); border-bottom:1px solid #E3CFA8; }
+  .app-header-inner { max-width:640px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .brand { font-family:Georgia,serif; font-size:19px; letter-spacing:1px; color:var(--terracotta); }
+  .header-right { display:flex; align-items:center; gap:14px; font-size:12px; color:#8a7256; }
+  .icon-btn { background:none; color:#8a7256; font-size:15px; padding:2px; }
+  .icon-btn:hover { color:var(--terracotta); }
+  .tabs { max-width:640px; margin:0 auto; padding:0 16px; display:flex; gap:4px; }
+  .tab-btn { background:none; color:#8a7256; padding:8px 14px; border-radius:8px 8px 0 0; font-size:13px; font-weight:600; }
+  .tab-btn.active { background:var(--cream); color:var(--terracotta); }
+  .tab-btn:hover:not(.active) { color:var(--terracotta); }
+
+  .momentum { font-size:11.5px; color:#8a7256; text-align:center; margin:14px 0 4px 0; }
+  .momentum b { color:var(--terracotta); }
+
+  .quote-card {
+    background: linear-gradient(180deg, var(--cream), var(--cream2));
+    border:1.5px solid #E3CFA8; border-radius:16px; padding:26px 24px; margin:16px 0;
+    box-shadow:0 4px 16px rgba(74,46,31,0.1); position:relative;
+  }
+  .quote-mark { font-family:Georgia,serif; font-size:44px; color:var(--gold); line-height:0.5; opacity:0.6; }
+  .quote-text { font-family:Georgia,serif; font-size:19px; font-style:italic; line-height:1.5; color:var(--deep); margin:10px 0; }
+  .quote-source { font-family:Georgia,serif; font-size:13px; color:var(--terracotta); margin-top:-4px; }
+  .quote-meta { font-size:11px; color:#8a7256; text-transform:uppercase; letter-spacing:1px; margin-top:10px; }
+
+  .callout { background:#FCF3DD; border-left:5px solid var(--gold); border-radius:6px; padding:10px 14px; margin:10px 0; font-size:12.5px; line-height:1.5; }
+  .callout.terra { background:#FBE9DD; border-left-color:var(--terracotta); }
+
+  .entry-area { width:100%; background:#FFFDF8; border:1.5px solid #E3CFA8; border-radius:8px; padding:12px; color:var(--ink); outline:none; font-size:14px; line-height:1.6; resize:vertical; min-height:140px; }
+  .entry-area:focus { border-color:var(--terracotta); }
+
+  .ribbon { background:linear-gradient(100deg, var(--terracotta), #C68642); color:#FBF3E7; font-weight:800; font-size:14px; padding:9px 16px; border-radius:6px; margin:18px 0 10px 0; }
+
+  .entry-card { background:var(--cream); border:1px solid #E3CFA8; border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .entry-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .entry-meta { font-size:11px; color:#8a7256; }
+  .entry-quote { font-size:12.5px; font-style:italic; color:var(--terracotta); margin-bottom:8px; font-family:Georgia,serif; }
+  .entry-text { font-size:13.5px; line-height:1.6; white-space:pre-wrap; }
+  .icon-row { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .del-icon { background:#F3E4CC; color:var(--terracotta); font-size:14px; width:30px; height:30px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .del-icon:hover { background:var(--red); color:white; }
+  .del-icon.star { color:#c9a227; }
+  .del-icon.star.active { background:#c9a227; color:white; }
+  .empty-state { text-align:center; color:#8a7256; font-size:13px; padding:50px 0; }
+
+  .search-wrap { position:relative; margin-bottom:14px; }
+  .search-wrap span { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#8a7256; font-size:14px; }
+  .search-input { padding-left:32px; }
+  .filter-row { display:flex; gap:8px; margin-bottom:14px; }
+  .filter-chip { background:#FFFDF8; border:1.5px solid #E3CFA8; color:#8a7256; border-radius:20px; padding:6px 12px; font-size:12px; font-weight:700; }
+  .filter-chip.active { background:var(--terracotta); border-color:var(--terracotta); color:white; }
+
+  .return-btn { margin-top:8px; margin-right:6px; background:rgba(181,101,29,0.1); color:var(--terracotta); font-size:12px; padding:6px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:6px; }
+  .return-btn:hover { background:var(--terracotta); color:#fff; }
+  .past-entries { margin-top:10px; padding-top:10px; border-top:1px dashed #E3CFA8; }
+  .past-entry-mini { font-size:12px; margin-bottom:6px; }
+  .past-entry-mini .pem-date { color:#8a7256; font-weight:700; }
+
+  .on-this-day { background:linear-gradient(180deg,#F3E4CC,#EAD5B0); border:1.5px dashed var(--terracotta); border-radius:14px; padding:16px 18px; margin:14px 0; }
+  .on-this-day .otd-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--terracotta); font-weight:800; margin-bottom:6px; }
+  .on-this-day .otd-text { font-size:13.5px; line-height:1.55; white-space:pre-wrap; }
+
+  .export-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .btn-export { background:#F3E4CC; color:var(--terracotta); border:1px solid #E3CFA8; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+  .btn-export:hover { background:#EAD5B0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   STORAGE — everything lives in localStorage on this device only.
+   ========================================================================= */
+var memoryFallback = {};
+var storageWorks = (function () {
+  try { var k = "__kindling_test__"; localStorage.setItem(k, "1"); localStorage.removeItem(k); return true; }
+  catch (e) { return false; }
+})();
+function storageGet(key) {
+  try { if (storageWorks) { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } return memoryFallback[key] || null; }
+  catch (e) { return null; }
+}
+function storageSet(key, value) {
+  try { if (storageWorks) localStorage.setItem(key, JSON.stringify(value)); else memoryFallback[key] = value; }
+  catch (e) { memoryFallback[key] = value; }
+}
+
+/* =========================================================================
+   STATE
+   Sparks are now objects: { id, text, source, favorite }
+   Entries: { id, date, sparkId, quote, source, text }  -- id doubles as a timestamp
+   ========================================================================= */
+var state = {
+  screen: "login", profiles: [], profile: null,
+  step: "home", // home | addSparks | journal | sparks
+  quotes: [], entries: [],
+  entryText: "", search: "", sparkSearch: "",
+  pasteText: "", saved: false,
+  shuffledQuote: null,
+  lastBackupAt: null,
+  favoritesOnly: false,
+  editingSparkId: null, editingEntryId: null,
+  expandedSparkId: null,
+  incomingShareText: null, justSharedIn: false
+};
+
+var todayStr = function () { return new Date().toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" }); };
+var dayOfYear = function () { var d = new Date(); var start = new Date(d.getFullYear(), 0, 0); var diff = d - start; return Math.floor(diff / 86400000); };
+var slug = function (n) { return n.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,""); };
+var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]; }); };
+var daysBetween = function (a, b) { return Math.floor(Math.abs(a - b) / 86400000); };
+
+/* =========================================================================
+   ACTIONS — profile / local scaffolding
+   ========================================================================= */
+function init() {
+  state.profiles = storageGet("kindling_profiles") || [];
+  checkIncomingShare();
+  render();
+}
+
+// Handles arriving here via Android's "Share to Kindling" from another app
+// (only possible once Kindling is installed to the home screen, since that's
+// what makes it register as a share target in the OS).
+function checkIncomingShare() {
+  var params = new URLSearchParams(location.search);
+  var title = (params.get("shared_title") || "").trim();
+  var text = (params.get("shared_text") || "").trim();
+  var url = (params.get("shared_url") || "").trim();
+  var combined = [text, url].filter(Boolean).join("\n") || title;
+  if (combined) {
+    state.incomingShareText = combined;
+    // Clean the URL so reloading later doesn't re-trigger the same share.
+    history.replaceState({}, "", location.pathname);
+  }
+}
+
+// Older versions stored sparks as plain strings. Upgrade them in place so
+// nobody's existing collection breaks or gets lost.
+function normalizeQuotes(raw) {
+  if (!Array.isArray(raw)) return [];
+  var seed = Date.now();
+  return raw.map(function (q, i) {
+    if (typeof q === "string") return { id: seed + i, text: q, source: "", favorite: false };
+    return { id: q.id || (seed + i), text: q.text || "", source: q.source || "", favorite: !!q.favorite };
+  });
+}
+
+function enterProfile(name) {
+  var clean = (name || "").trim(); if (!clean) return;
+  var key = slug(clean);
+  if (!state.profiles.some(function (p) { return slug(p) === key; })) {
+    state.profiles = state.profiles.concat([clean]); storageSet("kindling_profiles", state.profiles);
+  }
+  state.profile = clean;
+  state.entries = storageGet("kindling_entries_" + key) || [];
+  var rawQuotes = storageGet("kindling_quotes_" + key) || [];
+  state.quotes = normalizeQuotes(rawQuotes);
+  saveQuotes(); // persist the upgraded shape right away
+  state.screen = "app";
+  if (state.incomingShareText) {
+    state.pasteText = state.incomingShareText;
+    state.incomingShareText = null;
+    state.justSharedIn = true;
+    state.step = "addSparks";
+  } else {
+    state.step = "home";
+  }
+  render();
+}
+function logout() { state.profile = null; state.screen = "login"; render(); }
+function saveEntries() { storageSet("kindling_entries_" + slug(state.profile), state.entries); }
+function saveQuotes() { storageSet("kindling_quotes_" + slug(state.profile), state.quotes); }
+
+function setTab(t) { state.step = t; state.editingSparkId = null; state.editingEntryId = null; if (t !== "addSparks") state.justSharedIn = false; render(); }
+function flash(id) { var el = document.getElementById(id); if (el) { el.style.borderColor = "#B0413E"; setTimeout(function () { el.style.borderColor = ""; }, 900); } }
+
+/* =========================================================================
+   ADD SPARKS — paste a block of text, split into individual sparks.
+   A trailing line starting with an em dash / double hyphen is read as the
+   source, e.g.:
+     The wound is the place where the light enters you.
+     — Rumi
+   ========================================================================= */
+function splitSourceLine(block) {
+  var lines = block.split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 0; });
+  if (lines.length > 1) {
+    var last = lines[lines.length - 1];
+    if (/^(—|--|-)\s*\S/.test(last)) {
+      var source = last.replace(/^(—|--|-)\s*/, "").trim();
+      var text = lines.slice(0, -1).join(" ").trim();
+      if (text.length > 3) return { text: text, source: source };
+    }
+  }
+  return { text: lines.join(" ").trim(), source: "" };
+}
+
+function addSparksFromPaste() {
+  var ta = document.getElementById("pasteArea");
+  var raw = ta ? ta.value : state.pasteText;
+  if (!raw || !raw.trim()) { flash("pasteArea"); return; }
+
+  var blocks = raw.split(/\n\s*\n/).map(function (b) { return b.trim(); }).filter(function (b) { return b.length > 3; });
+  if (blocks.length === 0) return;
+
+  var existingText = {};
+  state.quotes.forEach(function (q) { existingText[q.text] = true; });
+  var added = 0;
+  var seed = Date.now();
+  blocks.forEach(function (b, i) {
+    var parsed = splitSourceLine(b);
+    if (parsed.text.length > 3 && !existingText[parsed.text]) {
+      state.quotes.push({ id: seed + i, text: parsed.text, source: parsed.source, favorite: false });
+      existingText[parsed.text] = true;
+      added++;
+    }
+  });
+  saveQuotes();
+  state.pasteText = "";
+  state.justSharedIn = false;
+  state.step = "sparks";
+  render();
+}
+
+function deleteSpark(id) {
+  if (!confirm("Delete this spark? Past journal entries about it are kept, just no longer linked to a spark you can revisit. This can't be undone.")) return;
+  state.quotes = state.quotes.filter(function (q) { return q.id !== id; });
+  saveQuotes();
+  render();
+}
+
+function toggleFavoriteSpark(id) {
+  var q = state.quotes.filter(function (x) { return x.id === id; })[0];
+  if (!q) return;
+  q.favorite = !q.favorite;
+  saveQuotes();
+  render();
+}
+
+function startEditSpark(id) { state.editingSparkId = id; render(); }
+function cancelEditSpark() { state.editingSparkId = null; render(); }
+function saveEditSpark(id) {
+  var textEl = document.getElementById("editSparkText_" + id);
+  var sourceEl = document.getElementById("editSparkSource_" + id);
+  var text = textEl ? textEl.value.trim() : "";
+  if (!text) { flash("editSparkText_" + id); return; }
+  var q = state.quotes.filter(function (x) { return x.id === id; })[0];
+  if (!q) return;
+  q.text = text;
+  q.source = sourceEl ? sourceEl.value.trim() : q.source;
+  state.editingSparkId = null;
+  saveQuotes();
+  render();
+}
+
+function toggleExpandSpark(id) {
+  state.expandedSparkId = state.expandedSparkId === id ? null : id;
+  render();
+}
+
+function toggleFavoritesOnly() { state.favoritesOnly = !state.favoritesOnly; render(); }
+
+/* =========================================================================
+   JOURNALING
+   ========================================================================= */
+function todaysQuote() {
+  if (state.shuffledQuote) return state.shuffledQuote;
+  if (!state.quotes || state.quotes.length === 0) return { id: null, text: "Write down one true thing about today.", source: "" };
+  var idx = dayOfYear() % state.quotes.length;
+  return state.quotes[idx];
+}
+
+/* =========================================================================
+   SHARE — out to other apps (native share sheet, or clipboard fallback),
+   and in from other apps (see share_target in manifest.json + checkIncomingShare).
+   ========================================================================= */
+function shareSpark(text, source) {
+  var shareText = text + (source ? "\n\u2014 " + source : "");
+  if (navigator.share) {
+    navigator.share({ text: shareText, title: "A spark from Kindling" }).catch(function () {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(shareText).then(function () {
+      alert("Copied to your clipboard \u2014 paste it wherever you'd like.");
+    }).catch(function () {
+      alert("Couldn't share or copy automatically. Here's the text:\n\n" + shareText);
+    });
+  } else {
+    alert("Couldn't share or copy automatically. Here's the text:\n\n" + shareText);
+  }
+}
+function shareToday() {
+  var q = todaysQuote();
+  shareSpark(q.text, q.source);
+}
+function shareSparkById(id) {
+  var q = state.quotes.filter(function (x) { return x.id === id; })[0];
+  if (!q) return;
+  shareSpark(q.text, q.source);
+}
+
+function shuffleSpark() {
+  if (!state.quotes || state.quotes.length === 0) { render(); return; }
+  if (state.quotes.length < 2) { state.shuffledQuote = state.quotes[0]; render(); return; }
+  var current = todaysQuote();
+  var next = current;
+  var tries = 0;
+  while (next.id === current.id && tries < 10) {
+    next = state.quotes[Math.floor(Math.random() * state.quotes.length)];
+    tries++;
+  }
+  state.shuffledQuote = next;
+  state.saved = false;
+  render();
+}
+
+function writeAboutSpark(id) {
+  var q = state.quotes.filter(function (x) { return x.id === id; })[0];
+  if (!q) return;
+  state.shuffledQuote = q;
+  state.saved = false;
+  state.step = "home";
+  render();
+}
+
+function saveEntry() {
+  var ta = document.getElementById("entryArea");
+  var text = ta ? ta.value : state.entryText;
+  if (!text.trim()) { flash("entryArea"); return; }
+  var q = todaysQuote();
+  var entry = { id: Date.now(), date: todayStr(), sparkId: q.id, quote: q.text, source: q.source || "", text: text.trim() };
+  state.entries = [entry].concat(state.entries);
+  saveEntries();
+  state.saved = true; state.entryText = "";
+  render();
+}
+function deleteEntry(id) {
+  if (!confirm("Delete this journal entry? This can't be undone.")) return;
+  state.entries = state.entries.filter(function (e) { return e.id !== id; });
+  saveEntries();
+  render();
+}
+function startEditEntry(id) { state.editingEntryId = id; render(); }
+function cancelEditEntry() { state.editingEntryId = null; render(); }
+function saveEditEntry(id) {
+  var ta = document.getElementById("editEntryText_" + id);
+  var text = ta ? ta.value.trim() : "";
+  if (!text) { flash("editEntryText_" + id); return; }
+  var e = state.entries.filter(function (x) { return x.id === id; })[0];
+  if (!e) return;
+  e.text = text;
+  state.editingEntryId = null;
+  saveEntries();
+  render();
+}
+
+function entriesForSpark(sparkId) {
+  return state.entries.filter(function (e) { return e.sparkId === sparkId; });
+}
+
+// "On This Day" — look for an entry from roughly a year ago, or failing
+// that, roughly a month ago.
+function onThisDayEntry() {
+  var now = Date.now();
+  var best = null, bestDiff = Infinity;
+  state.entries.forEach(function (e) {
+    [365, 30].some(function (targetDays) {
+      var diff = Math.abs(daysBetween(now, e.id) - targetDays);
+      if (diff <= 2 && diff < bestDiff) { best = e; bestDiff = diff; return true; }
+      return false;
+    });
+  });
+  return best;
+}
+
+/* =========================================================================
+   EXPORT
+   ========================================================================= */
+function downloadBlob(filename, content, mime) {
+  var blob = new Blob([content], { type: mime });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+function exportBackup() {
+  var payload = {
+    kind: "kindling-backup", version: 2,
+    exportedAt: new Date().toISOString(),
+    profile: state.profile,
+    quotes: state.quotes,
+    entries: state.entries
+  };
+  downloadBlob("kindling-backup-" + slug(state.profile) + ".json", JSON.stringify(payload, null, 2), "application/json");
+  state.lastBackupAt = todayStr();
+  render();
+}
+function exportWord() {
+  var body = "<h1 style='color:#B5651D;'>Kindling \u2014 Journal</h1><p><i>Exported " + esc(todayStr()) + " for " + esc(state.profile || "") + "</i></p>";
+  if (state.entries.length === 0) { body += "<p>No entries yet.</p>"; }
+  else {
+    state.entries.slice().reverse().forEach(function (e) {
+      body += "<p><b>" + esc(e.date) + "</b><br><i>" + esc(e.quote) + (e.source ? " \u2014 " + esc(e.source) : "") + "</i><br>" + esc(e.text).replace(/\n/g, "<br>") + "</p><hr>";
+    });
+  }
+  var html = "<html><head><meta charset='utf-8'><title>Kindling Journal</title></head><body style='font-family:Georgia,serif; color:#3A2A1F;'>" + body + "</body></html>";
+  downloadBlob("kindling-journal.doc", html, "application/msword");
+}
+function csvEscape(v) { var s = String(v == null ? "" : v); if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"'; return s; }
+function exportCsv() {
+  var header = ["Date", "Spark", "Source", "Entry"];
+  var lines = [header.map(csvEscape).join(",")];
+  state.entries.slice().reverse().forEach(function (e) {
+    lines.push([e.date, e.quote, e.source || "", e.text].map(csvEscape).join(","));
+  });
+  downloadBlob("kindling-journal.csv", lines.join("\r\n"), "text/csv");
+}
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+function mountainSVG() {
+  return '<svg class="mountains" width="100%" height="220" viewBox="0 0 440 220" preserveAspectRatio="none">' +
+    '<polygon points="0,220 0,140 70,90 140,150 210,70 300,140 360,100 440,150 440,220" fill="#6B3A24" opacity="0.55"/>' +
+    '<polygon points="0,220 0,170 90,120 180,175 260,120 340,175 440,130 440,220" fill="#4A2E1F" opacity="0.85"/>' +
+  '</svg>';
+}
+
+function renderLogin() {
+  var chips = state.profiles.map(function (p) {
+    return '<button class="btn-secondary" style="margin:3px;" data-action="enterProfileChip" data-name="' + esc(p) + '">&#127755; ' + esc(p) + '</button>';
+  }).join("");
+  return (
+    '<div class="center-screen"><div class="cover-card">' +
+      '<div class="cover-gradient">' + mountainSVG() +
+        '<div class="cover-content">' +
+          '<div class="badge">A Journal That Follows You</div>' +
+          '<div class="cover-title">Kindling</div>' +
+          '<div class="cover-sub">One quiet spark to write toward, every day.</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="login-box">' +
+        '<label class="field-label">Enter your name to begin or continue</label>' +
+        '<input id="nameInput" class="text-input" placeholder="Your name">' +
+        '<button class="btn-primary" data-action="handleEnter">Enter &rarr;</button>' +
+        (state.profiles.length > 0
+          ? '<div style="margin-top:16px; padding-top:14px; border-top:1px solid #E3CFA8;">' +
+              '<div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#8a7256; margin-bottom:8px;">Continue as</div>' +
+              '<div>' + chips + '</div></div>'
+          : '') +
+      '</div>' +
+    '</div></div>'
+  );
+}
+
+function renderAddSparks() {
+  return '<div class="ribbon">&#10024; ADD SPARKS</div>' +
+    (state.justSharedIn ? '<div class="callout terra"><b>&#128229; Shared in from another app.</b> Review it below, then tap Add.</div>' : '') +
+    '<div class="callout">Copy your sparks from wherever they live \u2014 a book, a notes app, anywhere \u2014 and paste the whole block below. Separate each spark with a blank line. Optionally add a source on its own line right under a spark, starting with a dash:</div>' +
+    '<div class="callout terra" style="font-family:Georgia,serif; font-style:italic;">The wound is the place where the light enters you.<br>&mdash; Rumi</div>' +
+    '<label class="field-label">Paste here</label>' +
+    '<textarea id="pasteArea" class="entry-area" style="min-height:220px;" placeholder="First spark goes here.&#10;&#10;Second spark, with a source.&#10;&mdash; Author Name&#10;&#10;And so on...">' + esc(state.pasteText) + '</textarea>' +
+    '<button class="btn-primary" style="margin-top:10px;" data-action="addSparksFromPaste">Add These Sparks</button>' +
+    '<div class="callout terra" style="margin-top:24px;"><b>Want the same sparks on another device?</b> Open the same source on that device, and paste the same text into this same screen there \u2014 no file to move around.</div>' +
+    '<div style="margin-top:22px; padding-top:16px; border-top:1px solid #E3CFA8;">' +
+      '<div class="field-label">Local backup (optional)</div>' +
+      '<button class="btn-secondary" data-action="exportBackup">&#128190; Export a backup file</button>' +
+      (state.lastBackupAt ? '<div class="footnote" style="text-align:left; margin-top:8px;">Last exported: ' + esc(state.lastBackupAt) + '</div>' : '') +
+    '</div>';
+}
+
+function renderMomentum() {
+  if (state.entries.length === 0) return "";
+  var last = state.entries[0]; // already sorted newest-first
+  var days = daysBetween(Date.now(), last.id);
+  var dayText = days === 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
+  return '<div class="momentum"><b>' + state.entries.length + '</b> entr' + (state.entries.length === 1 ? "y" : "ies") + ' so far &middot; last write ' + dayText + '</div>';
+}
+
+function renderHome() {
+  var quote = todaysQuote();
+  var otd = onThisDayEntry();
+  var otdDays = otd ? daysBetween(Date.now(), otd.id) : 0;
+  var otdLabel = otd ? (otdDays >= 300 ? "One Year Ago Today" : "One Month Ago") : "";
+
+  return renderMomentum() +
+    '<div class="quote-card">' +
+      '<div class="quote-mark">&#8220;</div>' +
+      '<div class="quote-text">' + esc(quote.text) + '</div>' +
+      (quote.source ? '<div class="quote-source">&mdash; ' + esc(quote.source) + '</div>' : '') +
+      '<div class="quote-meta">' + (state.shuffledQuote ? "A Spark" : "Today\u2019s Spark") + ' &middot; ' + esc(todayStr()) + '</div>' +
+    '</div>' +
+    '<div style="text-align:center; margin:-8px 0 14px 0;">' +
+      '<button class="btn-secondary" data-action="shuffleSpark">&#128256; New Spark</button> ' +
+      '<button class="btn-secondary" data-action="shareToday">&#128228; Share</button>' +
+    '</div>' +
+    '<label class="field-label">What does this stir up?</label>' +
+    '<textarea id="entryArea" class="entry-area" placeholder="A line is enough. So is a page.">' + esc(state.entryText) + '</textarea>' +
+    '<button class="btn-primary" style="margin-top:10px;" data-action="saveEntry">' + (state.saved ? "Saved \u2014 write again anytime" : "Save Entry") + '</button>' +
+    '<div style="margin-top:10px; text-align:center;"><button class="btn-secondary" data-action="goAddSparks">&#10024; Add more sparks</button></div>' +
+    (otd ? '<div class="on-this-day"><div class="otd-label">&#128197; ' + otdLabel + '</div>' +
+      '<div class="otd-text">' + esc(otd.text) + '</div></div>' : '');
+}
+
+function renderJournalTab() {
+  var filtered = state.entries.filter(function (e) {
+    return !state.search.trim() || e.text.toLowerCase().indexOf(state.search.toLowerCase()) !== -1 || e.quote.toLowerCase().indexOf(state.search.toLowerCase()) !== -1;
+  });
+  var listHtml = filtered.length === 0
+    ? '<div class="empty-state">' + (state.entries.length === 0 ? "No entries yet \u2014 write your first one on the Today tab." : "No entries match that search.") + '</div>'
+    : filtered.map(function (e) {
+        if (state.editingEntryId === e.id) {
+          return '<div class="entry-card">' +
+            '<div class="entry-quote">' + esc(e.quote) + (e.source ? " \u2014 " + esc(e.source) : "") + '</div>' +
+            '<textarea id="editEntryText_' + e.id + '" class="entry-area">' + esc(e.text) + '</textarea>' +
+            '<button class="btn-primary" style="margin-top:8px;" data-action="saveEditEntry" data-id="' + e.id + '">Save</button>' +
+            '<button class="btn-secondary" style="margin-top:8px; margin-left:6px;" data-action="cancelEditEntry">Cancel</button>' +
+          '</div>';
+        }
+        return '<div class="entry-card">' +
+          '<div class="entry-card-top"><div class="entry-meta">' + esc(e.date) + '</div>' +
+          '<div class="icon-row">' +
+            '<button class="del-icon" data-action="startEditEntry" data-id="' + e.id + '" title="Edit">&#9998;</button>' +
+            '<button class="del-icon" data-action="deleteEntry" data-id="' + e.id + '" title="Delete">&#128465;</button>' +
+          '</div></div>' +
+          '<div class="entry-quote">' + esc(e.quote) + (e.source ? " \u2014 " + esc(e.source) : "") + '</div>' +
+          '<div class="entry-text">' + esc(e.text) + '</div>' +
+        '</div>';
+      }).join("");
+  return '<div class="export-row">' +
+      '<button class="btn-export" data-action="exportWord">&#128196; Export to Word (.doc)</button>' +
+      '<button class="btn-export" data-action="exportCsv">&#128202; Export to Excel (.csv)</button>' +
+    '</div>' +
+    '<div class="search-wrap"><span>&#128269;</span>' +
+    '<input id="searchInput" class="text-input search-input" placeholder="Search your entries..." value="' + esc(state.search) + '"></div>' +
+    '<div id="entryList">' + listHtml + '</div>';
+}
+
+function renderSparksTab() {
+  var pool = state.favoritesOnly ? state.quotes.filter(function (q) { return q.favorite; }) : state.quotes;
+  var filtered = pool.filter(function (item) {
+    return !state.sparkSearch || item.text.toLowerCase().indexOf(state.sparkSearch.toLowerCase()) !== -1 || (item.source && item.source.toLowerCase().indexOf(state.sparkSearch.toLowerCase()) !== -1);
+  });
+  var listHtml = filtered.length === 0
+    ? '<div class="empty-state">' + (state.quotes.length === 0 ? "No sparks yet \u2014 add some on the Add Sparks tab." : "No sparks match.") + '</div>'
+    : filtered.map(function (item) {
+        if (state.editingSparkId === item.id) {
+          return '<div class="entry-card">' +
+            '<label class="field-label">Spark text</label>' +
+            '<textarea id="editSparkText_' + item.id + '" class="entry-area" style="min-height:70px;">' + esc(item.text) + '</textarea>' +
+            '<label class="field-label">Source (optional)</label>' +
+            '<input id="editSparkSource_' + item.id + '" class="text-input" value="' + esc(item.source || "") + '">' +
+            '<button class="btn-primary" data-action="saveEditSpark" data-id="' + item.id + '">Save</button>' +
+            '<button class="btn-secondary" style="margin-top:8px; margin-left:6px;" data-action="cancelEditSpark">Cancel</button>' +
+          '</div>';
+        }
+        var past = entriesForSpark(item.id);
+        var expanded = state.expandedSparkId === item.id;
+        var pastHtml = "";
+        if (past.length > 0) {
+          pastHtml = '<button class="return-btn" data-action="toggleExpandSpark" data-id="' + item.id + '">&#128214; ' + past.length + " past entr" + (past.length === 1 ? "y" : "ies") + (expanded ? " \u2013 hide" : " \u2013 show") + '</button>';
+          if (expanded) {
+            pastHtml += '<div class="past-entries">' + past.map(function (e) {
+              return '<div class="past-entry-mini"><span class="pem-date">' + esc(e.date) + ':</span> ' + esc(e.text.length > 140 ? e.text.slice(0, 140) + "\u2026" : e.text) + '</div>';
+            }).join("") + '</div>';
+          }
+        }
+        return '<div class="entry-card">' +
+          '<div class="entry-card-top" style="margin-bottom:0;">' +
+            '<div class="entry-text" style="font-style:italic; font-family:Georgia,serif;">&#8220;' + esc(item.text) + '&#8221;' + (item.source ? '<div style="font-size:11.5px; font-style:normal; color:#8a7256; margin-top:3px;">&mdash; ' + esc(item.source) + '</div>' : '') + '</div>' +
+            '<div class="icon-row">' +
+              '<button class="del-icon star ' + (item.favorite ? "active" : "") + '" data-action="toggleFavoriteSpark" data-id="' + item.id + '" title="Favorite">&#9733;</button>' +
+              '<button class="del-icon" data-action="shareSparkById" data-id="' + item.id + '" title="Share">&#128228;</button>' +
+              '<button class="del-icon" data-action="startEditSpark" data-id="' + item.id + '" title="Edit">&#9998;</button>' +
+              '<button class="del-icon" data-action="deleteSpark" data-id="' + item.id + '" title="Delete">&#128465;</button>' +
+            '</div>' +
+          '</div>' +
+          '<button class="return-btn" data-action="writeAboutSpark" data-id="' + item.id + '">&#127755; Write about this today</button>' +
+          pastHtml +
+        '</div>';
+      }).join("");
+  return '<div class="callout">Every spark you\u2019ve added, in order. Tap one to write about it \u2014 or revisit it, and see how your thinking has moved.</div>' +
+    '<div class="search-wrap"><span>&#128269;</span>' +
+    '<input id="sparkSearchInput" class="text-input search-input" placeholder="Search your sparks..." value="' + esc(state.sparkSearch || "") + '"></div>' +
+    '<div class="filter-row"><button class="filter-chip ' + (state.favoritesOnly ? "active" : "") + '" data-action="toggleFavoritesOnly">&#9733; Favorites only</button></div>' +
+    '<div id="sparksList">' + listHtml + '</div>';
+}
+
+function renderApp() {
+  var body;
+  if (state.step === "addSparks") body = renderAddSparks();
+  else if (state.step === "journal") body = renderJournalTab();
+  else if (state.step === "sparks") body = renderSparksTab();
+  else body = renderHome();
+
+  var tabsHtml =
+    '<div class="tabs">' +
+        '<button class="tab-btn ' + (state.step === "home" ? "active" : "") + '" data-action="goHome">&#127755; Today</button>' +
+        '<button class="tab-btn ' + (state.step === "sparks" ? "active" : "") + '" data-action="goSparks">&#10024; All Sparks (' + state.quotes.length + ')</button>' +
+        '<button class="tab-btn ' + (state.step === "journal" ? "active" : "") + '" data-action="goJournal">&#128214; My Journal (' + state.entries.length + ')</button>' +
+        '<button class="tab-btn ' + (state.step === "addSparks" ? "active" : "") + '" data-action="goAddSparks">&#10024; Add Sparks</button>' +
+      '</div>';
+
+  return '<div class="app-header"><div class="app-header-inner">' +
+      '<div class="brand">Kindling</div>' +
+      '<div class="header-right"><span>&#127755; ' + esc(state.profile) + '</span>' +
+      '<button class="icon-btn" data-action="logout" aria-label="Switch profile">&#10148;</button></div>' +
+    '</div>' + tabsHtml + '</div>' +
+    '<div class="app-shell" style="padding-top:20px;">' + body + '</div>';
+}
+
+function render() {
+  var root = document.getElementById("root");
+  root.innerHTML = state.screen === "login" ? renderLogin() : renderApp();
+}
+
+/* =========================================================================
+   EVENT DELEGATION
+   ========================================================================= */
+document.addEventListener("click", function (e) {
+  var el = e.target.closest("[data-action]");
+  if (!el) return;
+  var action = el.getAttribute("data-action");
+  var id = el.getAttribute("data-id");
+  var numId = id !== null ? parseInt(id, 10) : null;
+  switch (action) {
+    case "handleEnter": { var ni = document.getElementById("nameInput"); enterProfile(ni ? ni.value : ""); break; }
+    case "enterProfileChip": enterProfile(el.getAttribute("data-name")); break;
+    case "logout": logout(); break;
+    case "goHome": setTab("home"); break;
+    case "goJournal": setTab("journal"); break;
+    case "goSparks": setTab("sparks"); break;
+    case "goAddSparks": setTab("addSparks"); break;
+    case "writeAboutSpark": writeAboutSpark(numId); break;
+    case "deleteSpark": deleteSpark(numId); break;
+    case "toggleFavoriteSpark": toggleFavoriteSpark(numId); break;
+    case "toggleFavoritesOnly": toggleFavoritesOnly(); break;
+    case "startEditSpark": startEditSpark(numId); break;
+    case "cancelEditSpark": cancelEditSpark(); break;
+    case "saveEditSpark": saveEditSpark(numId); break;
+    case "toggleExpandSpark": toggleExpandSpark(numId); break;
+    case "addSparksFromPaste": addSparksFromPaste(); break;
+    case "shuffleSpark": shuffleSpark(); break;
+    case "shareToday": shareToday(); break;
+    case "shareSparkById": shareSparkById(numId); break;
+    case "saveEntry": saveEntry(); break;
+    case "deleteEntry": deleteEntry(numId); break;
+    case "startEditEntry": startEditEntry(numId); break;
+    case "cancelEditEntry": cancelEditEntry(); break;
+    case "saveEditEntry": saveEditEntry(numId); break;
+    case "exportBackup": exportBackup(); break;
+    case "exportWord": exportWord(); break;
+    case "exportCsv": exportCsv(); break;
+  }
+});
+document.addEventListener("input", function (e) {
+  var id = e.target.id;
+  if (id === "entryArea") state.entryText = e.target.value;
+  else if (id === "pasteArea") state.pasteText = e.target.value;
+  else if (id === "searchInput") { state.search = e.target.value; render(); }
+  else if (id === "sparkSearchInput") { state.sparkSearch = e.target.value; render(); }
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && state.screen === "login" && document.activeElement && document.activeElement.id === "nameInput") {
+    var ni = document.getElementById("nameInput"); enterProfile(ni ? ni.value : "");
+  }
+});
+
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("service-worker.js").catch(function () {});
+  });
+}
+
+init();
+</script>
+</body>
+</html>
